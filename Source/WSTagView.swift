@@ -79,12 +79,15 @@ open class WSTagView: UIView, UITextInputTraits {
 
     open var selected: Bool = false {
         didSet {
-            if selected && !isFirstResponder {
-                _ = becomeFirstResponder()
+            if oldValue == selected {
+                return
             }
-            else if !selected && isFirstResponder {
-                _ = resignFirstResponder()
-            }
+//            if selected && !isFirstResponder {
+//                _ = becomeFirstResponder()
+//            }
+//            else if !selected && isFirstResponder {
+//                _ = resignFirstResponder()
+//            }
             updateContent(animated: true)
         }
     }
@@ -144,21 +147,21 @@ open class WSTagView: UIView, UITextInputTraits {
             updateColors()
             return
         }
-
+        layer.removeAllAnimations()
         UIView.animate(
             withDuration: 0.2,
             animations: { [weak self] in
                 self?.updateColors()
-                if self?.selected ?? false {
-                    self?.transform = CGAffineTransform(scaleX: 1.15, y: 1.15)
-                }
+//                if self?.selected ?? false {
+//                    self?.transform = CGAffineTransform(scaleX: 1.15, y: 1.15)
+//                }
             },
             completion: { [weak self] _ in
-                if self?.selected ?? false {
-                    UIView.animate(withDuration: 0.1) { [weak self] in
-                        self?.transform = CGAffineTransform.identity
-                    }
-                }
+//                if self?.selected ?? false {
+//                    UIView.animate(withDuration: 0.1) { [weak self] in
+//                        self?.transform = CGAffineTransform.identity
+//                    }
+//                }
             }
         )
     }
@@ -217,17 +220,22 @@ open class WSTagView: UIView, UITextInputTraits {
         return true
     }
 
-    open override func becomeFirstResponder() -> Bool {
-        let didBecomeFirstResponder = super.becomeFirstResponder()
-        selected = true
-        return didBecomeFirstResponder
-    }
+//    open override func becomeFirstResponder() -> Bool {
+//        let didBecomeFirstResponder = super.becomeFirstResponder()
+//        selected = true
+//        return didBecomeFirstResponder
+//    }
 
-    open override func resignFirstResponder() -> Bool {
-        let didResignFirstResponder = super.resignFirstResponder()
-        selected = false
-        return didResignFirstResponder
-    }
+//    open override func resignFirstResponder() -> Bool {
+//        let didResignFirstResponder = super.resignFirstResponder()
+//        selected = false
+//        if #available(iOSApplicationExtension 13.0, *) {
+//            UIMenuController.shared.hideMenu()
+//        } else {
+//            UIMenuController.shared.setMenuVisible(false, animated: true)
+//        }
+//        return didResignFirstResponder
+//    }
 
     // MARK: - Gesture Recognizers
     @objc func handleTapGestureRecognizer(_ sender: UITapGestureRecognizer) {
@@ -237,23 +245,30 @@ open class WSTagView: UIView, UITextInputTraits {
         onDidRequestSelection?(self)
     }
 
+    open override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+        if action == #selector(UIResponderStandardEditActions.paste(_:)) {
+            return false
+        }
+        return super.canPerformAction(action, withSender: sender)
+    }
+    
 }
 
-extension WSTagView: UIKeyInput {
-
-    public var hasText: Bool {
-        return true
-    }
-
-    public func insertText(_ text: String) {
-        onDidInputText?(self, text)
-    }
-
-    public func deleteBackward() {
-        onDidRequestDelete?(self, nil)
-    }
-
-}
+//extension WSTagView: UIKeyInput {
+//
+//    public var hasText: Bool {
+//        return false
+//    }
+//
+//    public func insertText(_ text: String) {
+//        onDidInputText?(self, text)
+//    }
+//
+//    public func deleteBackward() {
+//        onDidRequestDelete?(self, nil)
+//    }
+//
+//}
 
 extension String {
     

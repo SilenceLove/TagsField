@@ -405,7 +405,7 @@ open class WSTagsField: UIScrollView {
         tagView.layoutMargins = self.layoutMargins
 
         tagView.onDidRequestSelection = { [weak self] tagView in
-            self?.selectTagView(tagView, animated: true)
+            self?.tapClick(tagView)
         }
 
         tagView.onDidRequestDelete = { [weak self] tagView, replacementText in
@@ -489,6 +489,7 @@ open class WSTagsField: UIScrollView {
     // MARK: - Actions
 
     @objc open func onTextFieldDidChange(_ sender: AnyObject) {
+        unselectTagTagView()
         onDidChangeText?(self, textField.text)
     }
 
@@ -530,22 +531,78 @@ open class WSTagsField: UIScrollView {
             tagView.onDidRequestDelete?(tagView, nil)
             return
         }
-
+        
         tagView.selected = true
         tagViews.filter { $0 != tagView }.forEach {
             $0.selected = false
             onDidUnselectTagView?(self, $0)
         }
-
+        
         onDidSelectTagView?(self, tagView)
     }
-
+    
     open func unselectAllTagViewsAnimated(_ animated: Bool = false) {
         tagViews.forEach {
             $0.selected = false
             onDidUnselectTagView?(self, $0)
         }
     }
+    
+    private var tapTagView: WSTagView?
+    
+    private func tapClick(_ tagView: WSTagView, animated: Bool = false) {
+        tapTagView = tagView
+        tagView.selected = true
+        tagViews.filter { $0 != tagView }.forEach {
+            $0.selected = false
+            onDidUnselectTagView?(self, $0)
+        }
+        textField.isDisabledPerformAction = true
+        if !textField.isFirstResponder {
+            tagView.becomeFirstResponder()
+        }
+        let menu = UIMenuController.shared
+        menu.menuItems = [.init(title: "删除", action: #selector(deleteTagView))]
+        menu.update()
+        if #available(iOSApplicationExtension 13.0, *) {
+            menu.showMenu(from: tagView, rect: tagView.bounds)
+        } else {
+            // Fallback on earlier versions
+            menu.setTargetRect(tagView.bounds, in: tagView)
+            menu.setMenuVisible(true, animated: true)
+        }
+
+        onDidSelectTagView?(self, tagView)
+    }
+    
+    @objc
+    private func deleteTagView() {
+        guard let tapTagView = tapTagView else {
+            return
+        }
+        removeTag(tapTagView)
+        unselectTagTagView()
+    }
+    
+    private func unselectTagTagView() {
+        if let tagView = tapTagView {
+            tagView.selected = false
+            onDidUnselectTagView?(self, tagView)
+            tapTagView = nil
+            if #available(iOSApplicationExtension 13.0, *) {
+                UIMenuController.shared.hideMenu()
+            } else {
+                UIMenuController.shared.setMenuVisible(false, animated: true)
+            }
+        }
+    }
+    
+    func removeTag(_ tagView: WSTagView) {
+        if let index = tagViews.firstIndex(of: tagView) {
+            removeTagAtIndex(index)
+        }
+    }
+
 
     // MARK: internal & private properties or methods
 
@@ -650,14 +707,32 @@ extension WSTagsField {
             }
 
             if self?.isTextFieldEmpty ?? true, let tagView = self?.tagViews.last {
-                self?.selectTagView(tagView, animated: true)
-                self?.textField.resignFirstResponder()
+                if let _ = self?.tapTagView {
+                    self?.deleteTagView()
+                }else {
+                    self?.tapTagView = tagView
+                    self?.selectTagView(tagView, animated: true)
+                }
+//                self?.textField.resignFirstResponder()
             }
         }
 
         textField.addTarget(self, action: #selector(onTextFieldDidChange(_:)), for: UIControl.Event.editingChanged)
 
         repositionViews()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(willHideMenu), name: UIMenuController.willHideMenuNotification, object: nil)
+    }
+    
+    @objc
+    func willHideMenu() {
+        textField.isDisabledPerformAction = false
+        UIMenuController.shared.menuItems = nil
+        if let tapTagView = tapTagView {
+            tapTagView.selected = false
+            onDidUnselectTagView?(self, tapTagView)
+            self.tapTagView = nil
+        }
     }
 
     fileprivate func calculateContentHeight(layoutWidth: CGFloat) -> CGFloat {
@@ -831,6 +906,7 @@ extension WSTagsField: UITextFieldDelegate {
     }
 
     public func textFieldDidEndEditing(_ textField: UITextField) {
+        unselectTagTagView()
         if !isTextFieldEmpty, shouldTokenizeAfterResigningFirstResponder {
             tokenizeTextFieldText()
         }

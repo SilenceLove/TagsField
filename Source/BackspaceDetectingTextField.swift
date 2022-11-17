@@ -30,5 +30,20 @@ open class BackspaceDetectingTextField: UITextField {
         // Call super afterwards. The `text` property will return text prior to the delete.
         super.deleteBackward()
     }
+    
+    var isDisabledPerformAction: Bool = false
 
+    open override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+        if isDisabledPerformAction {
+            if action == #selector(UIResponderStandardEditActions.paste(_:)) ||
+                action == #selector(UIResponderStandardEditActions.select(_:)) ||
+                action == #selector(UIResponderStandardEditActions.selectAll(_:)) ||
+                action == #selector(UIResponderStandardEditActions.delete(_:)) ||
+                action == #selector(UIResponderStandardEditActions.copy(_:)) ||
+                action == #selector(UIResponderStandardEditActions.cut(_:)) {
+                return false
+            }
+        }
+        return super.canPerformAction(action, withSender: sender)
+    }
 }
