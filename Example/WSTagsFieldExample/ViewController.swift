@@ -37,7 +37,7 @@ class ViewController: UIViewController {
         tagsField.contentInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10) //old padding
 
         tagsField.placeholder = "Enter a tag"
-        tagsField.placeholderColor = .red
+//        tagsField.placeholderColor = .red
         tagsField.placeholderAlwaysVisible = true
         tagsField.backgroundColor = .lightGray
         tagsField.textField.returnKeyType = .continue
@@ -69,7 +69,7 @@ class ViewController: UIViewController {
         tagsField.cornerRadius = 10.0
         tagsField.spaceBetweenLines = 2
         tagsField.spaceBetweenTags = 2
-        tagsField.tintColor = .red
+        tagsField.tagBackgroundColor = .red
         tagsField.textColor = .blue
         tagsField.selectedColor = .yellow
         tagsField.selectedTextColor = .black

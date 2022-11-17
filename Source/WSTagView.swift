@@ -56,11 +56,11 @@ open class WSTagView: UIView, UITextInputTraits {
         }
     }
 
-    open override var tintColor: UIColor! {
+    /// Background color to be used for selected state.
+    open var bgColor: UIColor = UIColor(red: 0, green: 0.47843137254901963, blue: 1, alpha: 1) {
         didSet { updateContent(animated: false) }
     }
-
-    /// Background color to be used for selected state.
+    
     open var selectedColor: UIColor? {
         didSet { updateContent(animated: false) }
     }
@@ -104,7 +104,7 @@ open class WSTagView: UIView, UITextInputTraits {
 
     public init(tag: WSTag) {
         super.init(frame: CGRect.zero)
-        self.backgroundColor = tintColor
+        self.backgroundColor = bgColor
         self.layer.cornerRadius = cornerRadius
         self.layer.masksToBounds = true
 
@@ -116,6 +116,7 @@ open class WSTagView: UIView, UITextInputTraits {
         textLabel.font = font
         textLabel.textColor = .white
         textLabel.backgroundColor = .clear
+        textLabel.numberOfLines = 0
         addSubview(textLabel)
 
         self.displayText = tag.text
@@ -134,7 +135,7 @@ open class WSTagView: UIView, UITextInputTraits {
     // MARK: - Styling
 
     fileprivate func updateColors() {
-        self.backgroundColor = selected ? selectedColor : tintColor
+        self.backgroundColor = selected ? selectedColor : bgColor
         textLabel.textColor = selected ? selectedTextColor : textColor
     }
 
@@ -182,6 +183,11 @@ open class WSTagView: UIView, UITextInputTraits {
 
     open func sizeToFit(_ size: CGSize) -> CGSize {
         if intrinsicContentSize.width > size.width {
+            if let font = textLabel.font,
+               let height = textLabel.text?.height(ofFont: font, maxWidth: size.width - (layoutMargins.left + layoutMargins.right)) {
+                return CGSize(width: size.width,
+                              height: height + layoutMargins.top + layoutMargins.bottom)
+            }
             return CGSize(width: size.width,
                           height: intrinsicContentSize.height)
         }
@@ -247,4 +253,26 @@ extension WSTagView: UIKeyInput {
         onDidRequestDelete?(self, nil)
     }
 
+}
+
+extension String {
+    
+    func size(ofAttributes attributes: [NSAttributedString.Key: Any], maxWidth: CGFloat, maxHeight: CGFloat) -> CGSize {
+        let constraintRect = CGSize(width: maxWidth, height: maxHeight)
+        let boundingBox = self.boundingRect(
+            with: constraintRect,
+            options: .usesLineFragmentOrigin,
+            attributes: attributes,
+            context: nil
+        )
+        return boundingBox.size
+    }
+    
+    func height(ofFont font: UIFont, maxWidth: CGFloat) -> CGFloat {
+        size(
+            ofAttributes: [NSAttributedString.Key.font: font],
+            maxWidth: maxWidth,
+            maxHeight: CGFloat(MAXFLOAT)
+        ).height
+    }
 }

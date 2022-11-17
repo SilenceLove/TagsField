@@ -27,18 +27,11 @@ open class WSTagsField: UIScrollView {
 
     /// Dedicated text field delegate.
     open weak var textDelegate: UITextFieldDelegate?
-
+    
     /// Background color for tag view in normal (non-selected) state.
-    @IBInspectable open override var tintColor: UIColor! {
+    @IBInspectable open var tagBackgroundColor: UIColor = UIColor(red: 0, green: 0.47843137254901963, blue: 1, alpha: 1) {
         didSet {
-            tagViews.forEach { $0.tintColor = self.tintColor }
-        }
-    }
-
-    /// Text color for tag view in normal (non-selected) state.
-    @IBInspectable open var textColor: UIColor? {
-        didSet {
-            tagViews.forEach { $0.textColor = self.textColor }
+            tagViews.forEach { $0.bgColor = self.tagBackgroundColor }
         }
     }
 
@@ -46,6 +39,13 @@ open class WSTagsField: UIScrollView {
     @IBInspectable open var selectedColor: UIColor? {
         didSet {
             tagViews.forEach { $0.selectedColor = self.selectedColor }
+        }
+    }
+    
+    /// Text color for tag view in normal (non-selected) state.
+    @IBInspectable open var textColor: UIColor? {
+        didSet {
+            tagViews.forEach { $0.textColor = self.textColor }
         }
     }
 
@@ -393,7 +393,7 @@ open class WSTagsField: UIScrollView {
 
         let tagView = WSTagView(tag: tag)
         tagView.font = self.font
-        tagView.tintColor = self.tintColor
+        tagView.bgColor = self.tagBackgroundColor
         tagView.textColor = self.textColor
         tagView.selectedColor = self.selectedColor
         tagView.selectedTextColor = self.selectedTextColor
@@ -604,7 +604,7 @@ extension WSTagsField {
         return super.inputAccessoryView
     }
 
-    open var inputFieldAccessoryView: UIView? {
+    public var inputFieldAccessoryView: UIView? {
         get { return textField.inputAccessoryView }
         set { textField.inputAccessoryView = newValue }
     }
@@ -682,7 +682,7 @@ extension WSTagsField {
         var curX: CGFloat = 0.0
         var curY: CGFloat = 0.0
         var totalHeight: CGFloat = Constants.STANDARD_ROW_HEIGHT
-
+        var lastHeight: CGFloat = Constants.STANDARD_ROW_HEIGHT
         // Tag views Rects
         var tagRect = CGRect.null
         for tagView in tagViews {
@@ -691,17 +691,22 @@ extension WSTagsField {
             if curX + tagRect.width > maxWidth {
                 // Need a new line
                 curX = 0
-                curY += Constants.STANDARD_ROW_HEIGHT + spaceBetweenLines
-                totalHeight += Constants.STANDARD_ROW_HEIGHT
+                curY += lastHeight + spaceBetweenLines
+                totalHeight += lastHeight
             }
 
             tagRect.origin.x = curX
             // Center our tagView vertically within STANDARD_ROW_HEIGHT
-            tagRect.origin.y = curY + ((Constants.STANDARD_ROW_HEIGHT - tagRect.height)/2.0)
+            if tagRect.height < Constants.STANDARD_ROW_HEIGHT {
+                tagRect.origin.y = curY + ((Constants.STANDARD_ROW_HEIGHT - tagRect.height) / 2.0)
+            }else {
+                tagRect.origin.y = curY
+            }
 
             closure(tagView, tagRect, nil)
 
             curX = tagRect.maxX + self.spaceBetweenTags
+            lastHeight = tagRect.height
         }
 
         // Always indent TextField by a little bit
@@ -717,7 +722,11 @@ extension WSTagsField {
                 // isOnFirstLine will be useful, and this calculation is important.
                 // So leaving it set here, and marking the warning to ignore it
                 curX = 0 + Constants.TEXT_FIELD_HSPACE
-                curY += Constants.STANDARD_ROW_HEIGHT + spaceBetweenLines
+                if lastHeight < Constants.STANDARD_ROW_HEIGHT {
+                    curY += Constants.STANDARD_ROW_HEIGHT + spaceBetweenLines
+                }else {
+                    curY += lastHeight + spaceBetweenLines
+                }
                 totalHeight += Constants.STANDARD_ROW_HEIGHT
                 // Adjust the width
                 availableWidthForTextField = maxWidth - curX
