@@ -564,7 +564,7 @@ open class WSTagsField: UIScrollView {
         let menu = UIMenuController.shared
         menu.menuItems = [.init(title: "删除", action: #selector(deleteTagView))]
         menu.update()
-        if #available(iOSApplicationExtension 13.0, *) {
+        if #available(iOS 13.0, *) {
             menu.showMenu(from: tagView, rect: tagView.bounds)
         } else {
             // Fallback on earlier versions
@@ -589,7 +589,7 @@ open class WSTagsField: UIScrollView {
             tagView.selected = false
             onDidUnselectTagView?(self, tagView)
             tapTagView = nil
-            if #available(iOSApplicationExtension 13.0, *) {
+            if #available(iOS 13.0, *) {
                 UIMenuController.shared.hideMenu()
             } else {
                 UIMenuController.shared.setMenuVisible(false, animated: true)

@@ -229,7 +229,7 @@ open class WSTagView: UIView, UITextInputTraits {
 //    open override func resignFirstResponder() -> Bool {
 //        let didResignFirstResponder = super.resignFirstResponder()
 //        selected = false
-//        if #available(iOSApplicationExtension 13.0, *) {
+//        if #available(iOS 13.0, *) {
 //            UIMenuController.shared.hideMenu()
 //        } else {
 //            UIMenuController.shared.setMenuVisible(false, animated: true)
