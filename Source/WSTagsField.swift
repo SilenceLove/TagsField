@@ -551,7 +551,14 @@ open class WSTagsField: UIScrollView {
     private var tapTagView: WSTagView?
     
     private func tapClick(_ tagView: WSTagView, animated: Bool = false) {
+        textField.isDisabledPerformAction = true
         if tapTagView == tagView {
+            let menu = UIMenuController.shared
+            if !menu.isMenuVisible {
+                showMenu(tagView)
+            }else {
+                unselectTagTagView()
+            }
             return
         }
         tapTagView = tagView
@@ -560,8 +567,6 @@ open class WSTagsField: UIScrollView {
             $0.selected = false
             onDidUnselectTagView?(self, $0)
         }
-        textField.isDisabledPerformAction = true
-        let menu = UIMenuController.shared
         if !textField.isFirstResponder {
             tagView.becomeFirstResponder()
         }else {
@@ -569,6 +574,12 @@ open class WSTagsField: UIScrollView {
                 textField.selectedTextRange = textField.textRange(from: range.end, to: range.end)
             }
         }
+        showMenu(tagView)
+        onDidSelectTagView?(self, tagView)
+    }
+    
+    func showMenu(_ tagView: WSTagView) {
+        let menu = UIMenuController.shared
         menu.menuItems = [.init(title: "删除", action: #selector(deleteTagView))]
         menu.update()
         if #available(iOS 13.0, *) {
@@ -579,7 +590,6 @@ open class WSTagsField: UIScrollView {
             menu.setMenuVisible(true, animated: true)
         }
 
-        onDidSelectTagView?(self, tagView)
     }
     
     @objc

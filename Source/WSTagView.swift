@@ -239,9 +239,9 @@ open class WSTagView: UIView, UITextInputTraits {
 
     // MARK: - Gesture Recognizers
     @objc func handleTapGestureRecognizer(_ sender: UITapGestureRecognizer) {
-        if selected {
-            return
-        }
+//        if selected {
+//            return
+//        }
         onDidRequestSelection?(self)
     }
 
