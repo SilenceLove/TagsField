@@ -551,6 +551,9 @@ open class WSTagsField: UIScrollView {
     private var tapTagView: WSTagView?
     
     private func tapClick(_ tagView: WSTagView, animated: Bool = false) {
+        if tapTagView == tagView {
+            return
+        }
         tapTagView = tagView
         tagView.selected = true
         tagViews.filter { $0 != tagView }.forEach {
@@ -558,10 +561,14 @@ open class WSTagsField: UIScrollView {
             onDidUnselectTagView?(self, $0)
         }
         textField.isDisabledPerformAction = true
+        let menu = UIMenuController.shared
         if !textField.isFirstResponder {
             tagView.becomeFirstResponder()
+        }else {
+            if let range = textField.selectedTextRange {
+                textField.selectedTextRange = textField.textRange(from: range.end, to: range.end)
+            }
         }
-        let menu = UIMenuController.shared
         menu.menuItems = [.init(title: "删除", action: #selector(deleteTagView))]
         menu.update()
         if #available(iOS 13.0, *) {
