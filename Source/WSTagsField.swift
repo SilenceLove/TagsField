@@ -697,11 +697,11 @@ extension WSTagsField {
 
             tagRect.origin.x = curX
             // Center our tagView vertically within STANDARD_ROW_HEIGHT
-            if tagRect.height < Constants.STANDARD_ROW_HEIGHT {
-                tagRect.origin.y = curY + ((Constants.STANDARD_ROW_HEIGHT - tagRect.height) / 2.0)
-            }else {
+//            if tagRect.height < Constants.STANDARD_ROW_HEIGHT {
+//                tagRect.origin.y = curY + ((Constants.STANDARD_ROW_HEIGHT - tagRect.height) / 2.0)
+//            }else {
                 tagRect.origin.y = curY
-            }
+//            }
 
             closure(tagView, tagRect, nil)
 
@@ -730,6 +730,10 @@ extension WSTagsField {
                 totalHeight += Constants.STANDARD_ROW_HEIGHT
                 // Adjust the width
                 availableWidthForTextField = maxWidth - curX
+            }else {
+                if lastHeight > Constants.STANDARD_ROW_HEIGHT {
+                    curY += (lastHeight - Constants.STANDARD_ROW_HEIGHT) * 0.5
+                }
             }
             textFieldRect.origin.y = curY
             textFieldRect.origin.x = curX
